@@ -35,6 +35,7 @@ type SpineLoadItem = LoadItem & SpineOpt;
 // @ts-ignore
 @resourceLoader('spine', ['json', 'bin'])
 class SpineLoader extends Loader<Entity> {
+  private assetManager: AssetManager;
   load(item: SpineLoadItem, resourceManager: ResourceManager): AssetPromise<Entity> {
     return new AssetPromise((resolve, reject) => {
       // @ts-ignore
@@ -45,6 +46,7 @@ class SpineLoader extends Loader<Entity> {
       let resource: SpineResouce;
       let autoGenUrl = false;
 
+      // 只传递了json 或 bin 资源链接
       if (!item.urls && item.url && this.checkUrl(item.url)) {
         autoGenUrl = true;
         resource = this.getResouceFromUrl(item.url);
@@ -56,19 +58,26 @@ class SpineLoader extends Loader<Entity> {
       
       let assetManager: AssetManager;
       let skeletonLoader: SkeletonJson | SkeletonBinary;
-      assetManager = new AssetManager((data) => {
+      assetManager = this.assetManager = new AssetManager((data) => {
         return new AdaptiveTexture(data, resourceManager.engine);
       });
       const { skeletonFile, atlasFile, textureFile } = resource;
-      if (resource && autoGenUrl) {
+      if (!resource) {
+        reject('Resouce param error');
+      }
+      if (autoGenUrl) {
+        // only json or bin file
         assetManager.loadText(skeletonFile);
         assetManager.loadTextureAtlas(atlasFile);
-      } else if (resource && !autoGenUrl) {
+      } else if (skeletonFile && atlasFile && !textureFile) {
+        // only json bin and atlas
+        assetManager.loadText(skeletonFile);
+        assetManager.loadTextureAtlas(atlasFile);
+      } else {
+        // json bin img and atlas
         assetManager.loadText(skeletonFile);
         assetManager.loadText(atlasFile);
         assetManager.loadTexture(textureFile);
-      } else {
-        reject('Resouce param error');
       }
 
       this.onLoad(assetManager).then((loadRes) => {
@@ -188,6 +197,19 @@ class SpineLoader extends Loader<Entity> {
       }, 100);
     })
   }
+
+  loadText(file: string) {
+    this.assetManager.loadText(file);
+  }
+
+  loadTexture(file: string) {
+    this.assetManager.loadTexture(file);
+  }
+
+  loadTextureAtlas(file: string) {
+    this.assetManager.loadTextureAtlas(file);
+  }
+  
   
 
 }
