@@ -1,15 +1,12 @@
-// @ts-check
-import reactPlugin from 'vite-plugin-react'
-
 /**
  * @type { import('vite').UserConfig }
  */
 const config = {
   jsx: 'react',
-  plugins: [reactPlugin],
+  plugins: [],
   optimizeDeps: {
     exclude: ["oasis-engine"]
   },
 }
 
-export default config
+export default config;

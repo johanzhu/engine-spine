@@ -57,7 +57,7 @@ export class SpineAnimation extends Script {
     this._skeleton = new Skeleton(skeletonData);
     const animationData = new AnimationStateData(skeletonData);
     this._state = new AnimationState(animationData);
-    this._meshGenerator.buildMesh(this._skeleton, this.setting);
+    this._meshGenerator.initialize(this._skeletonData, this.setting);
   }
 
   disposeCurrentSkeleton() {
@@ -84,9 +84,7 @@ export class SpineAnimation extends Script {
   }
 
   updateGeometry() {
-    this._meshGenerator.buildMesh(this._skeleton, this.setting);
-    this._meshGenerator.fillVertexData();
-    this._meshGenerator.fillIndexData();
+    this._meshGenerator.buildMesh(this._skeleton);
   }
 
   /**
