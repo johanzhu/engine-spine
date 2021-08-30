@@ -95,6 +95,7 @@ class SpineLoader extends Loader<Entity> {
         const meshRenderer = entity.addComponent(MeshRenderer);
         meshRenderer.shaderData.enableMacro('USE_MODEL_MATRIX');
         const mtl = resourceManager.engine._spriteDefaultMaterial.clone();
+        mtl.name = 'spine_default_material';
         meshRenderer.setMaterial(mtl);
         const spineAnimation = entity.addComponent(SpineAnimation);
         spineAnimation.setSkeletonData(skeletonData);
