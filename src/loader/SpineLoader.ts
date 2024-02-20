@@ -101,11 +101,6 @@ class SpineLoader extends Loader<SkeletonData> {
     }
     return fileSuffix;
   }
-
-  createAdaptiveTexture(texture: Texture2D) {
-    return new AdaptiveTexture();
-  }
-  
 }
 
 export class AdaptiveTexture {

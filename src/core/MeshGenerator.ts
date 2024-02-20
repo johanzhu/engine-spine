@@ -19,7 +19,6 @@ import { SpineMesh } from "./SpineMesh";
 import { SpineRenderSetting } from "../types";
 import { SpineAnimation } from "../SpineAnimation";
 import { BlendMode } from "../spine-core/BlendMode";
-import { text } from "stream/consumers";
 import { AdaptiveTexture } from "../loader/SpineLoader";
 
 type SubMeshItem = {
