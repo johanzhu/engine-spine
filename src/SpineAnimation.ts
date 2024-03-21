@@ -16,6 +16,8 @@ import {
 } from "@galacean/engine";
 import { SpineMaterial } from "./SpineMaterial";
 
+let t = Date.now();
+
 export class SpineAnimation extends Script {
   /** Spine 材质 */
   private static _defaultMaterial: Material;

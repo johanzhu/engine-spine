@@ -13,6 +13,8 @@ import {
 import { OrbitControl, Stats } from "@galacean/engine-toolkit";
 import * as dat from 'dat.gui';
 import { SpineAnimation, SkeletonData } from "../src/index";
+import { SpineRenderer } from '../src/renderer/SpineRenderer';
+import { SpineAnimation as SpineAnimationNew } from "../src/renderer/SpineAnimation";
 
 Logger.enable();
 console.log(SpineAnimation);
@@ -155,12 +157,14 @@ WebGLEngine.create({
 
   const cameraEntity = root.createChild("camera_node");
   const camera = cameraEntity.addComponent(Camera);
-  cameraEntity.transform.position = new Vector3(0, 0, 80);
+  cameraEntity.transform.position = new Vector3(0, 0, 1000);
   camera.nearClipPlane = 0.001;
   camera.farClipPlane = 20000;
+  camera.enableFrustumCulling = false;
   
   cameraEntity.addComponent(OrbitControl);
   cameraEntity.addComponent(Stats);
+
 
   loadSpine(root, engine, demos[baseDemo]);
 
@@ -195,27 +199,34 @@ async function loadSpine(root: Entity, engine: Engine, resource) {
   const animationNames = skeletonData.animations.map(item => item.name);
   const firstAnimation = animationNames[0];
 
+  // const spineEntity1 = root.createChild('spine-entity-1');
+  // spineEntity1.transform.setPosition(0, -300, 0);
+  // const meshRenderer = spineEntity1.addComponent(MeshRenderer);
+  // const mtl = SpineAnimation.getDefaultMaterial(engine);
+  // meshRenderer.setMaterial(mtl);
+  // const spineAnimation = spineEntity1.addComponent(SpineAnimation);
+  // spineAnimation.setSkeletonData(skeletonData);
+  // spineAnimation.state.setAnimation(0, 'walk', true);
+
   const spineEntity = root.createChild('spine-entity');
-  spineEntity.transform.setPosition(0, -15, 0);
-  const meshRenderer = spineEntity.addComponent(MeshRenderer);
-  const mtl = SpineAnimation.getDefaultMaterial(engine);
-  meshRenderer.setMaterial(mtl);
-  const spineAnimation = spineEntity.addComponent(SpineAnimation);
-  spineAnimation.setSkeletonData(skeletonData);
-  spineAnimation.scale = 0.05;
+  spineEntity.transform.setPosition(0, -300, 0);
+  const spineAnim = spineEntity.addComponent(SpineAnimationNew);
+  spineAnim.useSingleSubmesh = true;
+  spineAnim.initialize(skeletonData);
+  spineAnim.state.setAnimation(0, 'portal', true);
 
-  spineAnimation.state.setAnimation(0, firstAnimation, true);
-  animationController = gui.add({ animation: firstAnimation  }, 'animation', animationNames).onChange((animationName) => {
-		spineAnimation.state.setAnimation(0, animationName, true);
-	});
+  // spineAnimation.state.setAnimation(0, firstAnimation, true);
+  // animationController = gui.add({ animation: firstAnimation  }, 'animation', animationNames).onChange((animationName) => {
+	// 	spineAnimation.state.setAnimation(0, animationName, true);
+	// });
 
-  if (scene === 'changeSkin') {
-    handleChangeSkinScene(spineAnimation);
-  } else if (scene === 'hackSlotTexture') {
-    handleHackSlotTexture(spineAnimation, engine);
-  } else if (scene === 'changeAttachment') {
-    handleChangeAttachment(spineAnimation, skeletonData);
-  }
+  // if (scene === 'changeSkin') {
+  //   handleChangeSkinScene(spineAnimation);
+  // } else if (scene === 'hackSlotTexture') {
+  //   handleHackSlotTexture(spineAnimation, engine);
+  // } else if (scene === 'changeAttachment') {
+  //   handleChangeAttachment(spineAnimation, skeletonData);
+  // }
 }
 
 function handleChangeAttachment(spineAnimation: SpineAnimation, skeletonData: SkeletonData) {

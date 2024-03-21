@@ -92,10 +92,12 @@ export class MeshGenerator {
         if (!attachment) {
           continue;
         } else if (attachment instanceof RegionAttachment) {
-          vertexCount += QUAD_TRIANGLE_LENGTH;
+          // vertexCount += QUAD_TRIANGLE_LENGTH;
+          vertexCount += 4;
         } else if (attachment instanceof MeshAttachment) {
           let mesh = attachment;
-          vertexCount += mesh.triangles.length;
+          // vertexCount += mesh.triangles.length;
+          vertexCount += mesh.triangles.length >> 1;
         } else continue;
       }
     }
@@ -181,6 +183,8 @@ export class MeshGenerator {
       } else if (useClipping) {
         // attachment might be null or BoundingBoxAttachment
         _clipper.clipEndWithSlot(slot);
+        continue;
+      } else {
         continue;
       }
 
@@ -336,7 +340,7 @@ export class MeshGenerator {
         return;
       }
     }
-
+    
     // update sub-mesh
     mesh.clearSubMesh();
     const renderer = this._meshRenderer;

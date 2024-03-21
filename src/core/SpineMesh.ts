@@ -8,10 +8,9 @@ import {
   IndexFormat,
   BufferUsage,
 } from '@galacean/engine';
-import { MeshGenerator } from './MeshGenerator';
 
 export class SpineMesh {
-
+  private static VERTEX_STRIDE = 9;
   private _mesh: BufferMesh;
 
   private _indexBuffer: Buffer;
@@ -38,7 +37,7 @@ export class SpineMesh {
       new VertexElement('TEXCOORD_0', 28, VertexElementFormat.Vector2, 0),
     ];
 
-    const vertexStride = (MeshGenerator.VERTEX_STRIDE) * 4; // position + color + uv * Float32 byteLen
+    const vertexStride = (SpineMesh.VERTEX_STRIDE) * 4; // position + color + uv * Float32 byteLen
     const byteLength = vertexStride * vertexCount;
     const vertexBuffer = new Buffer(
       engine,
@@ -64,7 +63,7 @@ export class SpineMesh {
   }
 
   changeBuffer(engine: Engine, vertexCount: number) {
-    const vertexStride = (MeshGenerator.VERTEX_STRIDE) * 4; // position + color + uv * Float32 byteLen
+    const vertexStride = (SpineMesh.VERTEX_STRIDE) * 4; // position + color + uv * Float32 byteLen
     const byteLength = vertexStride * vertexCount;
     const vertexBuffer = new Buffer(
       engine,
