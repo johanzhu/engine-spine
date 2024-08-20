@@ -60,6 +60,7 @@ export async function loadTextureAtlas(
   engine: Engine,
 ): Promise<TextureAtlas> {
   const baseUrl = getBaseUrl(atlasPath);
+  console.log(atlasPath);
   let atlasText: string;
   let textures: Texture2D[];
   try {
@@ -105,6 +106,10 @@ export function createAdaptiveTexture(texture: Texture2D) {
 }
 
 export function getBaseUrl(url: string): string {
+  if (url.startsWith('./') || url.startsWith('../') || url.startsWith('/')) {
+    const basePath = url.substring(0, url.lastIndexOf('/') + 1);
+    return basePath || '/'; 
+  }
   const parsedUrl = new URL(url);
   const basePath = parsedUrl.origin + parsedUrl.pathname;
   return basePath.endsWith('/') ? basePath : basePath.substring(0, basePath.lastIndexOf('/') + 1);
