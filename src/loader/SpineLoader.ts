@@ -89,6 +89,9 @@ export class SpineLoader extends Loader<SpineResource> {
     return null;
   }
 
+  private _bufferReader: BufferReader;
+  private _decoder = new TextDecoder('utf-8');
+
   load(
     item: SpineLoadItem,
     resourceManager: ResourceManager
@@ -100,10 +103,25 @@ export class SpineLoader extends Loader<SpineResource> {
       } else {
         // @ts-ignore
         const buffer: ArrayBuffer = await resourceManager._request(item.url, { type: 'arraybuffer' });
-        const reader = new BufferReader(new Uint8Array(buffer));
-        const header = reader.nextStr();
-        if (header.startsWith('spine')) {
-          resource = await this._handleEditorAsset(item, buffer, reader, header, resourceManager);
+        let isEditorAsset = false;
+        let header = null;
+        try {
+          const decoder = this._decoder;
+          const jsonString = decoder.decode(buffer);
+          const parsedJson = JSON.parse(jsonString);
+          if (parsedJson.spine) {
+            isEditorAsset = true;
+            header = 'spine:json';
+          }
+        } catch {
+          this._bufferReader = new BufferReader(new Uint8Array(buffer));
+          header = this._bufferReader.nextStr();
+          if (header.startsWith('spine')) {
+            isEditorAsset = true;
+          }
+        }
+        if (isEditorAsset) {
+          resource = await this._handleEditorAsset(item, buffer, header, resourceManager);
         } else {
           resource = await this._handleOriginAsset(item, resourceManager, buffer);
         }
@@ -115,13 +133,13 @@ export class SpineLoader extends Loader<SpineResource> {
   private async _handleEditorAsset(
     item: LoadItem,
     buffer: ArrayBuffer, 
-    reader: BufferReader, 
     header: string, 
     resourceManager: ResourceManager,
   ): Promise<SpineResource> {
     let skeletonRawData: ArrayBuffer | string;
     let atlasRefId: string;
     const type = header.startsWith('spine:skel') ? 'skel' : 'json';
+    const reader = this._bufferReader;
     const { engine } = resourceManager;
     if (type === 'skel') {
       atlasRefId = reader.nextStr();
