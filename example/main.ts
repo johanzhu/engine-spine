@@ -37,7 +37,7 @@ const blobResource: any = {
   }
 };
 
-const baseDemo = 'spineBoy-单json';
+const baseDemo = 'ktx2';
 const demos = {
   'spineBoy-单json': {
     url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json",

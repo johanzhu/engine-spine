@@ -93,19 +93,23 @@ export class SpineLoader extends Loader<SkeletonDataResource> {
     item: SpineLoadItem,
     resourceManager: ResourceManager
   ): AssetPromise<SkeletonDataResource> {
-    return new AssetPromise(async (resolve) => {
+    return new AssetPromise(async (resolve, reject) => {
       let resource: SkeletonDataResource;
-      if (item.urls) { // single url might be editor asset
-        resource = await this._handleOriginAsset(item, resourceManager);
-      } else {
-        const buffer: ArrayBuffer = await this.request(item.url, { type: 'arraybuffer' });
-        const reader = new BufferReader(new Uint8Array(buffer));
-        const header = reader.nextStr();
-        if (header.startsWith('spine')) {
-          resource = await this._handleEditorAsset(buffer, reader, header, resourceManager);
+      try {
+        if (item.urls) { // single url might be editor asset
+          resource = await this._handleOriginAsset(item, resourceManager);
         } else {
-          resource = await this._handleOriginAsset(item, resourceManager, buffer);
+          const buffer: ArrayBuffer = await this.request(item.url, { type: 'arraybuffer' });
+          const reader = new BufferReader(new Uint8Array(buffer));
+          const header = reader.nextStr();
+          if (header.startsWith('spine')) {
+            resource = await this._handleEditorAsset(buffer, reader, header, resourceManager);
+          } else {
+            resource = await this._handleOriginAsset(item, resourceManager, buffer);
+          }
         }
+      } catch(err) {
+        reject(err);
       }
       resolve(resource);
     });
@@ -123,7 +127,7 @@ export class SpineLoader extends Loader<SkeletonDataResource> {
     const { engine } = resourceManager;
     if (type === 'skel') {
       atlasRefId = reader.nextStr();
-      skeletonRawData = reader.nextImageData();
+      skeletonRawData = reader.nextImageData() as any;
     } else {
       const decoder = new TextDecoder('utf-8');
       const text = decoder.decode(new Uint8Array(buffer));
@@ -131,8 +135,13 @@ export class SpineLoader extends Loader<SkeletonDataResource> {
       atlasRefId = atlas.refId;
       skeletonRawData = data;
     }
-    // @ts-ignore
-    const textureAtlas = await resourceManager.getResourceByRef({ refId: atlasRefId });
+    let textureAtlas: TextureAtlas;
+    try {
+      // @ts-ignore
+      textureAtlas = await resourceManager.getResourceByRef({ refId: atlasRefId });
+    } catch (err) {
+      throw err;
+    }
     const skeletonData = createSkeletonData(textureAtlas, skeletonRawData, type);
     return new SkeletonDataResource(engine, skeletonData);
   }
@@ -158,7 +167,12 @@ export class SpineLoader extends Loader<SkeletonDataResource> {
       if (!skeletonPath || !atlasPath) {
         throw new Error('Failed to load spine assets. Please check the file path and ensure the file extension is included.');
       }
-      const textureAtlas = await loadTextureAtlas(atlasPath, engine);
+      let textureAtlas: TextureAtlas;
+      try {
+        textureAtlas = await loadTextureAtlas(atlasPath, engine);
+      } catch(err) {
+        throw err;
+      }
       const { data, type } = this._determineSkeletonDataType(buffer);
       const skeletonData = createSkeletonData(textureAtlas, data, type);
       return new SkeletonDataResource(engine, skeletonData); 
@@ -173,22 +187,26 @@ export class SpineLoader extends Loader<SkeletonDataResource> {
       if (!skeletonPath || !atlasPath) {
         throw new Error('Failed to load spine assets. Please check the file path and ensure the file extension is included.');
       }
-      const skeletonPromise = skeletonExtension === 'json' ? this.request(skeletonPath, { type: 'text'}) : this.request(skeletonPath, { type: 'arraybuffer' });
       const type = skeletonExtension === 'json' ? 'json' : 'skel';
-      let loadQueue: Promise<any>[] = [ skeletonPromise ];
       let textureAtlas: TextureAtlas;
       let skeletonTextData: string | ArrayBuffer;
-      if (imagePaths.length > 0) {
-        loadQueue = loadQueue.concat([
-          this.request(atlasPath, { type: 'text'}),
-          loadTexturesByPath(imagePaths, imageExtensions, engine),
-        ]);
-        let atlasText: string, textures: Texture2D[];
-        [skeletonTextData, atlasText, textures] = await Promise.all(loadQueue);
-        textureAtlas = createTextureAtlas(atlasText, textures);
-      } else {
-        loadQueue.push(loadTextureAtlas(atlasPath, engine));
-        [skeletonTextData, textureAtlas] = await Promise.all(loadQueue);
+      try {
+        const skeletonPromise = skeletonExtension === 'json' ? this.request(skeletonPath, { type: 'text'}) : this.request(skeletonPath, { type: 'arraybuffer' });
+        let loadQueue: Promise<any>[] = [ skeletonPromise ];
+        if (imagePaths.length > 0) {
+          loadQueue = loadQueue.concat([
+            this.request(atlasPath, { type: 'text'}),
+            loadTexturesByPath(imagePaths, imageExtensions, engine),
+          ]);
+          let atlasText: string, textures: Texture2D[];
+          [skeletonTextData, atlasText, textures] = await Promise.all(loadQueue);
+          textureAtlas = createTextureAtlas(atlasText, textures);
+        } else {
+          loadQueue.push(loadTextureAtlas(atlasPath, engine));
+          [skeletonTextData, textureAtlas] = await Promise.all(loadQueue);
+        }
+      } catch (err) {
+        throw err;
       }
       const skeletonData = createSkeletonData(textureAtlas, skeletonTextData, type);
       return new SkeletonDataResource(engine, skeletonData); 

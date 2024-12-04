@@ -7,8 +7,7 @@ import glslify from "rollup-plugin-glslify";
 import serve from "rollup-plugin-serve";
 import miniProgramPlugin from "./rollup.miniprogram.plugin";
 import replace from "@rollup/plugin-replace";
-import { swc, defineRollupSwcOption } from "rollup-plugin-swc3";
-import { terser } from "rollup-plugin-terser";
+import { swc, defineRollupSwcOption, viteMinify } from "rollup-plugin-swc3";
 
 const { BUILD_TYPE, NODE_ENV } = process.env;
 
@@ -45,7 +44,9 @@ const commonPlugins = [
     })
   ),
   commonjs(),
-  terser(),
+  viteMinify({
+    module: true
+  }),
   NODE_ENV === "development"
     ? serve({
         contentBase: "packages",
