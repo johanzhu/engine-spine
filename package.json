@@ -42,11 +42,16 @@
     "cypress": "^13.13.0",
     "cypress-recurse": "^1.35.3",
     "dat.gui": "^0.7.9",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-webgl-canvas-mock": "^2.5.3",
+    "lint-staged": "^15.2.10",
     "nock": "^13.5.4",
     "odiff-bin": "^3.0.1",
+    "prettier": "^3.4.2",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "regenerator-runtime": "^0.14.1",
@@ -111,8 +116,15 @@
     "build:watch": "npm run b:types && cross-env BUILD_TYPE=ALL rollup -c --watch",
     "ci": "npm run lint && npm run test-cov",
     "lint": "eslint src --fix --ext .ts,.tsx",
-    "b:types": "tsc --emitDeclarationOnly"
+    "b:types": "tsc --emitDeclarationOnly",
+    "prepare": "husky"
   },
   "types": "types/index.d.ts",
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
   "repository": "https://github.com/johanzhu/engine-spine.git"
 }
