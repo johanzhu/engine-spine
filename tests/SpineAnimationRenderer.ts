@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import sinon from 'sinon';
 import {
   Entity,
   Engine,
@@ -11,6 +9,7 @@ import {
 // } from '@esotericsoftware/spine-core';
 import { SpineAnimationRenderer } from '../src/SpineAnimationRenderer';
 import { SpineGenerator } from '../src/SpineGenerator';
+import { describe, beforeEach, expect, it } from "vitest";
 
 describe('SpineAnimationRenderer', function() {
   // let engine, entity, spineAnimation, skeletonData;

@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from "vitest";
 import sinon from 'sinon';
 import { Engine, ResourceManager, Texture2D } from "@galacean/engine";
 // import { SkeletonData, TextureAtlas } from "@esotericsoftware/spine-core";

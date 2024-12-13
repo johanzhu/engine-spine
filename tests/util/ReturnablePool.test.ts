@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from "vitest";
 import { ReturnablePool } from '../../src/util/ReturnablePool'; // 确保导入路径正确
 
 // 定义一个简单的测试类

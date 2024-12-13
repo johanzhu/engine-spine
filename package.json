@@ -63,7 +63,9 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.3",
-    "vite": "^5.3.4"
+    "vite": "^5.3.4",
+    "vitest": "2.1.3",
+    "playwright": "^1.48.1"
   },
   "ci": {
     "type": "aci",
@@ -100,9 +102,9 @@
   },
   "scripts": {
     "example": "vite",
-    "test": "jest",
-    "test:cov": "jest --coverage",
-    "test:debug": "cross-env DEBUG_MODE=1 jest",
+    "pretest": "pnpm exec playwright install",
+    "test": "vitest",
+    "coverage": "vitest --coverage",
     "e2e:case": "vite serve ./e2e/.dev --config ./e2e/.dev/vite.config.js",
     "e2e": "cypress run --browser chrome --headless",
     "e2e:debug": "cypress open",

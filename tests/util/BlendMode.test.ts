@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from "vitest";
 import { BlinnPhongMaterial, WebGLEngine, BlendFactor, BlendOperation } from "@galacean/engine";
 import { BlendMode } from "@esotericsoftware/spine-core";
 import { setBlendMode, getBlendMode } from '../../src/util/BlendMode';

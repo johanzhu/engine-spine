@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from "vitest";
 import { BufferReader } from '../../src/util/BufferReader'; // 确保导入路径正确
 
 describe('BufferReader', function() {

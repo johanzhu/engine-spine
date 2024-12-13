@@ -1,11 +1,11 @@
-import { expect } from "chai";
+import { describe, beforeEach, expect, it } from "vitest";
 import { WebGLEngine, CullMode, RenderQueueType } from "@galacean/engine";
 import { SpineMaterial } from "../src/SpineMaterial";
 import { getBlendMode } from "../src/util/BlendMode";
 import { BlendMode } from "@esotericsoftware/spine-core";
 import { createEngine } from "./testUtils";
 
-describe("SpineMaterial", function () {
+describe.only("SpineMaterial", function () {
   let engine: WebGLEngine;
   beforeAll(async function () {
     engine = await createEngine();

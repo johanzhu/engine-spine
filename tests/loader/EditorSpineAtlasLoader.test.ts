@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { describe, beforeEach, expect, it } from "vitest";
 import sinon from 'sinon';
 import { EditorSpineAtlasLoader } from '../../src/loader/EditorSpineAtlasLoader'; // 确保导入路径正确
 import { ResourceManager, AssetPromise } from '@galacean/engine';
