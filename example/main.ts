@@ -13,6 +13,7 @@ import {
 import * as dat from "dat.gui";
 import { SpineAnimationRenderer, TextureAtlas } from "../src/index";
 import { SpineResource } from "../src/loader/SpineResource";
+import { SpineAnimationTrailingRender } from "./Trail";
 
 Logger.enable();
 console.log(SpineAnimationRenderer);
@@ -34,7 +35,7 @@ const blobResource: any = {
   }
 };
 
-const baseDemo = "spineBoy-单json";
+const baseDemo = "三文件-无后缀bin";
 const demos = {
   "spineBoy-单json": {
     url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json"
@@ -172,10 +173,6 @@ async function loadSpine(root: Entity, engine: Engine, resource) {
   const spineEntity = new Entity(engine, "spine-entity");
   spineEntity.transform.setPosition(0, -2.5, 0);
   const spineAnimation = spineEntity.addComponent(SpineAnimationRenderer);
-  if (scene === "physic") {
-    spineAnimation.premultipliedAlpha = true;
-    spineEntity.transform.setScale(0.5, 0.5, 0.5);
-  }
   spineAnimation.resource = spineResource;
   root.addChild(spineEntity);
 
