@@ -1,4 +1,3 @@
-
 import {
   Entity,
   Vector3,
@@ -8,8 +7,8 @@ import {
   BoundingBox,
   ModelMesh,
   MeshTopology,
-  UnlitMaterial,
-} from '@galacean/engine';
+  UnlitMaterial
+} from "@galacean/engine";
 
 export default class BoundingBoxLine extends MeshRenderer {
   private attachedEntity: Entity;
@@ -32,9 +31,7 @@ export default class BoundingBoxLine extends MeshRenderer {
       new Vector3(0, 1, -1)
     );
     mesh.setPositions(positions);
-    mesh.setIndices(
-      new Uint8Array([0, 1, 1, 2, 2, 3, 0, 3, 4, 5, 5, 6, 6, 7, 4, 7, 0, 4, 1, 5, 2, 6, 3, 7])
-    );
+    mesh.setIndices(new Uint8Array([0, 1, 1, 2, 2, 3, 0, 3, 4, 5, 5, 6, 6, 7, 4, 7, 0, 4, 1, 5, 2, 6, 3, 7]));
     mesh.addSubMesh(0, 24, MeshTopology.Lines);
     mesh.uploadData(false);
 

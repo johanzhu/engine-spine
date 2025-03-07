@@ -1,300 +1,274 @@
-import {
-  AssetType,
-  Camera,
-  Engine,
-  Entity,
-  KTX2TargetFormat,
-  Logger,
-  Texture2D,
-  Vector3,
-  WebGLEngine,
-  request
-} from "@galacean/engine";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
-import { SpineAnimationRenderer, TextureAtlas } from "../src/index";
-import { SpineResource } from "../src/loader/SpineResource";
 
-Logger.enable();
-console.log(SpineAnimationRenderer);
+// 基础场景设置
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 5);
+const canvas = document.getElementById("canvas");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
 
-document.getElementById("canvas")!.oncontextmenu = function (e) {
-  e.preventDefault();
-  e.stopPropagation();
-};
+const loader = new THREE.TextureLoader();
+loader.crossOrigin = "anonymous";
 
-const gui = new dat.GUI({ name: "My GUI" });
+// 定义所有页面贴图（每张贴图代表一页）
+const texturePaths = [
+  "https://mdn.alipayobjects.com/huamei_kz4wfo/afts/img/A*YXJITIqlWbMAAAAAAAAAAAAAesp6AQ/original",
+  "https://mdn.alipayobjects.com/huamei_kz4wfo/afts/img/A*B2NYSb3PYvcAAAAAAAAAAAAAesp6AQ/original",
+  "https://mdn.alipayobjects.com/huamei_kz4wfo/afts/img/A*2SJaS6BppXYAAAAAAAAAAAAAesp6AQ/original",
+  "https://mdn.alipayobjects.com/huamei_kz4wfo/afts/img/A*khMkRYSP2ywAAAAAAAAAAAAAesp6AQ/original"
+];
+const textures = texturePaths.map((path) => loader.load(path));
 
-let animationController; // 动画切换
-let skinController; // 皮肤切换
-let outline; // 包围盒
-const blobResource: any = {
-  urls: [],
-  params: {
-    fileExtensions: []
-  }
-};
-
-const baseDemo = "spineBoy-单json";
-const demos = {
-  "spineBoy-单json": {
-    url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json"
-  },
-  "raptor-三文件json": {
-    urls: [
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/jdjQ6mGxWknZ7TtQ/raptor/raptor.json",
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/jdjQ6mGxWknZ7TtQ/raptor/raptor.atlas",
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/jdjQ6mGxWknZ7TtQ/raptor/raptor.png"
-    ]
-  },
-  "三文件-无后缀bin": {
-    urls: [
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*Go0FQ6FlurEAAAAAAAAAAAAAAQAAAQ?a=.bin",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*AjmGS7wM-2UAAAAAAAAAAAAAAQAAAQ?b=.atlas",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/img/A*BXnORpJ85ywAAAAAAAAAAAAAAQAAAQ/original?c=.png"
-    ]
-  },
-  ktx2: {
-    urls: [
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*Go0FQ6FlurEAAAAAAAAAAAAAAQAAAQ?a=.bin",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*AjmGS7wM-2UAAAAAAAAAAAAAAQAAAQ?b=.atlas",
-      "https://mdn.alipayobjects.com/oasis_be/afts/img/A*i5qRTKgPlYMAAAAAAAAAAAAADkp5AQ/original/DR.ktx2"
-    ]
-  },
-  皮肤切换: {
-    urls: [
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/24ejL92gvbWxsXRi/mix-and-match/mix-and-match.json",
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/24ejL92gvbWxsXRi/mix-and-match/mix-and-match.atlas",
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/24ejL92gvbWxsXRi/mix-and-match/mix-and-match.png"
-    ],
-    scene: "changeSkin"
-  },
-  多贴图: {
-    urls: [
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*yN21QbvPtQUAAAAAAAAAAAAAAQAAAQ?af_fileName=dr.skel",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*BPMZQqwNlYQAAAAAAAAAAAAAAQAAAQ?af_fileName=dr.atlas",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/img/A*A6ObTo3ME8sAAAAAAAAAAAAAAQAAAQ/original?a=.png",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/img/A*85eWSZYpWKgAAAAAAAAAAAAAAQAAAQ/original?b=.png"
-    ]
-  },
-  物理: {
-    urls: [
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*cVzySIX09aQAAAAAAAAAAAAAAQAAAQ?af_fileName=dr.skel",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*7LzLSJLjBK4AAAAAAAAAAAAAAQAAAQ?af_fileName=dr.atlas",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/img/A*uySHT5k_PU0AAAAAAAAAAAAAAQAAAQ/original?a=.png"
-    ]
-  },
-  "物理-少女": {
-    urls: [
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*Po6oQJyLdb0AAAAAAAAAAAAAAQAAAQ?a=.json",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*CnqHS5nRzTIAAAAAAAAAAAAAAQAAAQ?b=.atlas",
-      "https://mdn.alipayobjects.com/portal_h1wdez/afts/img/A*WDXeRIpd-lAAAAAAAAAAAAAAAQAAAQ/original?b=.png"
-    ],
-    scene: "physic"
-  },
-  素材替换: {
-    url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json",
-    scene: "changeResource"
-  },
-  编辑器: {
-    project: "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*pPKPSpov008AAAAAAAAAAAAAAQAAAQ",
-    url: "/yuyouyou.json",
-    scene: "editor"
-  },
-  本地上传文件: {
-    url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/kx5353rrNIDn4CsX/spineboy-pro/spineboy-pro.json",
-    scene: "upload"
-  }
-};
-
-WebGLEngine.create({
-  canvas: "canvas",
-  ktx2Loader: {
-    workerCount: 4,
-    priorityFormats: [KTX2TargetFormat.ASTC, KTX2TargetFormat.ETC, KTX2TargetFormat.PVRTC]
-  }
-}).then(async (engine) => {
-  engine.canvas.resizeByClientSize();
-  engine.run();
-
-  engine.canvas.resizeByClientSize();
-  const scene = engine.sceneManager.activeScene;
-  const root = scene.createRootEntity();
-  scene.addRootEntity(root);
-
-  const cameraEntity = root.createChild("camera_node");
-  const camera = cameraEntity.addComponent(Camera);
-  cameraEntity.transform.position = new Vector3(0, 0, 20);
-  camera.nearClipPlane = 0.001;
-  camera.farClipPlane = 20000;
-
-  // cameraEntity.addComponent(OrbitControl);
-  // cameraEntity.addComponent(Stats);
-
-  loadSpine(root, engine, demos[baseDemo]);
-
-  gui.add({ name: baseDemo }, "name", Object.keys(demos)).onChange((demoName) => {
-    const spineEntity = root.findByName("spine-entity");
-    if (spineEntity) {
-      spineEntity.destroy();
+// --- Shader 代码 ---
+// 顶点着色器保持原有翻页效果，不做正负区分
+const vertexShader = `
+uniform float uBendFactor;
+uniform float uWaveSpeed;
+uniform float uFlipOriginY;
+uniform float uPageRotation;
+varying vec2 vUv;
+void main() {
+    vUv = uv;
+    vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+    
+    // 固定左侧边 x=-1 作为翻页基准
+    vec2 flipOrigin = vec2(1.0, 1.5 - 3.0 * uFlipOriginY);
+    float distance = length(modelPosition.xy - flipOrigin);
+    
+    float decay = exp(-distance * uWaveSpeed);
+    float effectiveBend = uBendFactor * decay;
+    
+    if (effectiveBend > 0.0) {
+        float radius = 1.0 / effectiveBend;
+        float angle = (modelPosition.x + 1.0) * effectiveBend;
+        modelPosition.x = -1.0 + radius * sin(angle);
+        modelPosition.z = radius * (1.0 - cos(angle));
+        
+        // 绕左侧边 (-1, 0) 旋转
+        vec3 pos = modelPosition.xyz;
+        vec2 pivot = vec2(-1.0, 0.0);
+        vec2 xz = pos.xz - pivot;
+        float cosR = cos(uPageRotation);
+        float sinR = sin(uPageRotation);
+        vec2 rotatedXZ = vec2(xz.x * cosR - xz.y * sinR, xz.x * sinR + xz.y * cosR);
+        pos.xz = rotatedXZ + pivot;
+        modelPosition = vec4(pos, 1.0);
     }
-    loadSpine(root, engine, demos[demoName]);
+    
+    gl_Position = projectionMatrix * viewMatrix * modelPosition;
+}
+`;
+
+// 片元着色器采样传入贴图
+const fragmentShader = `
+uniform sampler2D uTexture;
+varying vec2 vUv;
+void main() {
+    vec4 texColor = texture2D(uTexture, vUv);
+    gl_FragColor = texColor;
+}
+`;
+
+// --- 创建页面 Mesh ---
+// 共用同一几何体
+const geometry = new THREE.PlaneGeometry(2, 3, 40, 40);
+// pages 数组保存所有页面
+const pages = [];
+const numPages = textures.length;
+class PageAnimator {
+  constructor() {
+    this.animations = new Map();
+  }
+  addAnimation(page, targetBend, targetRotation, duration = 0.4) {
+    this.animations.set(page, {
+      startBend: page.material.uniforms.uBendFactor.value,
+      targetBend,
+      startRotation: page.material.uniforms.uPageRotation.value,
+      targetRotation,
+      startTime: performance.now(),
+      duration
+    });
+  }
+  update() {
+    const now = performance.now();
+    for (const [page, anim] of this.animations) {
+      const t = Math.min((now - anim.startTime) / (anim.duration * 1000), 1);
+
+      page.material.uniforms.uBendFactor.value = THREE.MathUtils.lerp(anim.startBend, anim.targetBend, t);
+      page.material.uniforms.uPageRotation.value = THREE.MathUtils.lerp(anim.startRotation, anim.targetRotation, t);
+      if (t === 1) this.animations.delete(page);
+    }
+  }
+}
+const animator = new PageAnimator();
+
+// dat.GUI 调试面板（仅调试翻页时使用的公共参数）
+const gui = new dat.GUI();
+const params = {
+  bendAngle: 0,
+  waveSpeed: 0.5,
+  flipOrigin: 0,
+  pageRotation: 0
+};
+gui
+  .add(params, "bendAngle", 0, Math.PI * 2)
+  .step(0.01)
+  .name("弯曲角度");
+gui.add(params, "waveSpeed", 0, 1).step(0.01).name("波动速度");
+gui.add(params, "flipOrigin", 0, 1).step(0.01).name("起始点位置");
+gui.add(params, "pageRotation", 0, Math.PI).step(0.01).name("页面旋转");
+
+// smoothStep 函数（与原逻辑相同）
+function smoothStep(edge0, edge1, x) {
+  let t = Math.max(0, Math.min((x - edge0) / (edge1 - edge0), 1));
+  return t * t * (3 - 2 * t);
+}
+
+// --- 翻页参数及状态 ---
+const maxPageRotation = Math.PI / 2; // 最大旋转 90°
+const bendSpeed = 0.005; // 拖拽转化为弯曲的比例
+const maxBend = 1.5; // 最大弯曲值
+
+// --- 初始化页面 ---
+let currentPageIndex = numPages - 1; // 初始显示最后一页
+
+for (let i = 0; i < numPages; i++) {
+  const material = new THREE.ShaderMaterial({
+    side: THREE.DoubleSide,
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uBendFactor: { value: i < currentPageIndex ? maxBend : 0 },
+      uWaveSpeed: { value: 0.15 },
+      uFlipOriginY: { value: 0.0 },
+      uPageRotation: { value: i < currentPageIndex ? maxPageRotation : 0 },
+      uTexture: { value: textures[i] }
+    }
   });
+  const pageMesh = new THREE.Mesh(geometry, material);
+  pageMesh.position.z = -i * 0.01;
+  pages.push(pageMesh);
+  scene.add(pageMesh);
+}
+
+let activeFlipPage = null;
+let initialBend = 0;
+let touchStartX = 0;
+let flipDirection = null; // "left" 或 "right"
+let isTouching = false;
+// 新增过渡控制变量
+let currentFlipOriginY = 0;
+let targetFlipOriginY = 0;
+
+canvas.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 1) {
+    touchStartX = e.touches[0].clientX;
+    controls.enabled = false;
+  }
 });
 
-async function loadSpine(root: Entity, engine: Engine, resource) {
-  let spineResource: SpineResource | null = null;
-  const { scene } = resource;
-  if (scene === "editor") {
-    const data = await request(resource.project, { type: "json" });
-    // @ts-ignore
-    engine.resourceManager.initVirtualResources(data.files);
-  }
-  try {
-    spineResource = (await engine.resourceManager.load({
-      ...resource,
-      type: "spine"
-    })) as SpineResource;
-  } catch (err) {
-    console.error("spine asset load error: ", err);
-  }
+canvas.addEventListener("touchmove", (e) => {
+  if (e.touches.length === 1) {
+    const deltaX = touchStartX - e.touches[0].clientX;
+    touchStartX = e.touches[0].clientX;
 
-  if (!spineResource) return;
-  if (scene === "upload") {
-    console.log(blobResource);
-    loadSpine(root, engine, blobResource);
-    return;
-  }
-  console.log("spine asset loaded =>", spineResource.skeletonData);
-  removeController();
-  const animationNames = spineResource.skeletonData.animations.map((item) => item.name);
-  const firstAnimation = animationNames[0];
-
-  const spineEntity = new Entity(engine, "spine-entity");
-  spineEntity.transform.setPosition(0, -2.5, 0);
-  const spineAnimation = spineEntity.addComponent(SpineAnimationRenderer);
-  if (scene === "physic") {
-    spineAnimation.premultipliedAlpha = true;
-    spineEntity.transform.setScale(0.5, 0.5, 0.5);
-  }
-  spineAnimation.resource = spineResource;
-  root.addChild(spineEntity);
-
-  // const clone = spineEntity.clone();
-  // clone.name = 'test';
-  // clone.transform.setPosition(25, -15, 0);
-  // const animation2 = clone.getComponent(SpineAnimationRenderer);
-  // animation2!.defaultState.skinName = 'full-skins/boy';
-  // animation2!.defaultState.scale = 0.04;
-  // animation2!.defaultState.animationName = 'dance';
-  // animation2!.defaultState.loop = true;
-  // root.addChild(clone);
-
-  // const outlineEntity = root.createChild('outline');
-  // outline = outlineEntity.addComponent(BoundingBoxLine);
-  // outline.attachToEntity(spineEntity);
-  // outline.isActive = true;
-  // setInterval(() => {
-  //   outline.updateVertices();
-  // }, 67);
-
-  spineAnimation.state.setAnimation(0, firstAnimation, true);
-  animationController = gui
-    .add({ animation: firstAnimation }, "animation", animationNames)
-    .onChange((animationName) => {
-      spineAnimation.state.setAnimation(0, animationName, true);
-    });
-
-  if (scene === "changeSkin") {
-    handleChangeSkinScene(spineAnimation);
-  }
-
-  if (scene === "changeResource") {
-    handleChangeResource(engine, spineAnimation);
-  }
-}
-
-function handleChangeSkinScene(spineAnimation: SpineAnimationRenderer) {
-  const { skeleton } = spineAnimation;
-  skeleton.setSkinByName("full-skins/girl"); // 1. Set the active skin
-  skeleton.setSlotsToSetupPose(); // 2. Use setup pose to set base attachments.
-  const info = {
-    skin: "full-skins/girl"
-  };
-  skinController = gui
-    .add(info, "skin", [
-      "full-skins/girl",
-      "full-skins/girl-blue-cape",
-      "full-skins/girl-spring-dress",
-      "full-skins/boy"
-    ])
-    .onChange((skinName) => {
-      skeleton.setSkinByName(skinName); // 1. Set the active skin
-      skeleton.setSlotsToSetupPose(); // 2. Use setup pose to set base attachments.
-    });
-}
-
-async function handleChangeResource(engine: Engine, spineAnimation: SpineAnimationRenderer) {
-  const newResource = (await engine.resourceManager.load({
-    urls: [
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/jdjQ6mGxWknZ7TtQ/raptor/raptor.json",
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/jdjQ6mGxWknZ7TtQ/raptor/raptor.atlas",
-      "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/jdjQ6mGxWknZ7TtQ/raptor/raptor.png"
-    ],
-    type: "spine"
-  })) as SpineResource;
-  setTimeout(() => {
-    spineAnimation.defaultConfig.animationName = "roar";
-    spineAnimation.resource = newResource;
-  }, 1000);
-}
-
-function removeController() {
-  if (animationController) {
-    animationController.remove();
-    animationController = null;
-  }
-  if (skinController) {
-    skinController.remove();
-    skinController = null;
-  }
-}
-
-window.onload = function () {
-  const fileInput = document.getElementById("fileInput") as HTMLInputElement;
-  const linkContainer = document.getElementById("linkContainer");
-  fileInput.addEventListener("change", function (event) {
-    const files = fileInput.files;
-    if (files) {
-      // Clear previous links
-      if (linkContainer) {
-        linkContainer.innerHTML = "";
+    if (!activeFlipPage) {
+      if (deltaX > 0) {
+        // 左滑
+        activeFlipPage = pages[currentPageIndex];
+        flipDirection = "left";
+      } else {
+        // 右滑
+        // 修正条件：检查前一页是否处于弯曲状态
+        if (currentPageIndex > 0 && pages[currentPageIndex - 1].material.uniforms.uBendFactor.value === maxBend) {
+          activeFlipPage = pages[currentPageIndex - 1];
+          flipDirection = "right";
+        }
       }
-
-      // Create and display a temporary link for each file
-      Array.from(files).forEach((file, index) => {
-        const tempLink = URL.createObjectURL(file);
-        const ext = getFileExtension(file);
-        blobResource.urls.push(tempLink);
-        blobResource.params.fileExtensions.push(ext);
-        console.log(blobResource);
-      });
     }
-  });
-};
 
-function getFileExtension(file: File): string {
-  const fileName = file.name;
-  const lastDotIndex = fileName.lastIndexOf(".");
-  if (lastDotIndex === -1 || lastDotIndex === 0) {
-    return "";
+    if (activeFlipPage) {
+      // 修正弯曲计算方向
+      const deltaBend = deltaX * bendSpeed; // 移除方向乘数
+      let newBend = activeFlipPage.material.uniforms.uBendFactor.value + deltaBend;
+
+      newBend = Math.max(0, Math.min(newBend, maxBend));
+      activeFlipPage.material.uniforms.uBendFactor.value = newBend;
+
+      const ratio = newBend / maxBend;
+      const targetRotation = maxPageRotation * smoothStep(0.0, 1.0, ratio);
+      activeFlipPage.material.uniforms.uPageRotation.value = targetRotation;
+
+      params.bendAngle = newBend;
+      params.pageRotation = targetRotation;
+      gui.updateDisplay();
+    }
+
+    const touchY = e.touches[0].clientY;
+    const screenHeight = window.innerHeight;
+    targetFlipOriginY = touchY < screenHeight / 2 ? 0 : 1;
   }
-  return fileName.substring(lastDotIndex + 1);
-}
+});
 
-function delay(time: number) {
-  return new Promise((res) => {
-    setTimeout(() => {
-      res(true);
-    }, time);
+canvas.addEventListener("touchend", () => {
+  controls.enabled = true;
+  if (!activeFlipPage) return;
+  let targetBend, targetRotation;
+
+  if (flipDirection === "left") {
+    const shouldFlip = activeFlipPage.material.uniforms.uBendFactor.value >= maxBend * 0.4;
+    targetBend = shouldFlip ? maxBend : 0;
+    targetRotation = shouldFlip ? maxPageRotation : 0;
+
+    if (shouldFlip && currentPageIndex < numPages - 1) {
+      currentPageIndex++;
+      updatePageDepths(); // 调用新函数
+    }
+  } else {
+    // right
+    const shouldRestore = activeFlipPage.material.uniforms.uBendFactor.value < maxBend * 0.6;
+    targetBend = shouldRestore ? 0 : maxBend;
+    targetRotation = shouldRestore ? 0 : maxPageRotation;
+
+    if (shouldRestore && currentPageIndex > 0) {
+      currentPageIndex--;
+      updatePageDepths(); // 调用新函数
+    }
+  }
+  // 添加动画
+  animator.addAnimation(activeFlipPage, targetBend, targetRotation);
+  activeFlipPage = null;
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  animator.update();
+  controls.update();
+  renderer.render(scene, camera);
+
+  // 添加起始点过渡动画
+  currentFlipOriginY = THREE.MathUtils.lerp(
+    currentFlipOriginY,
+    targetFlipOriginY,
+    0.2 // 控制过渡速度
+  );
+  // 同时更新shader参数和调试面板
+  if (activeFlipPage) {
+    activeFlipPage.material.uniforms.uFlipOriginY.value = currentFlipOriginY;
+    params.flipOrigin = currentFlipOriginY;
+  }
+}
+animate();
+
+function updatePageDepths() {
+  pages.forEach((page, i) => {
+    let baseZ = -i * 0.01; // 基础层级
+    page.position.z = i === currentPageIndex ? baseZ + 0.001 : baseZ;
+    page.matrixWorldNeedsUpdate = true; // 强制更新矩阵
   });
 }
