@@ -23,6 +23,7 @@ export class SpineMaterial extends Material {
   `;
 
   private static _spineFS = `
+    #include <common>
     uniform sampler2D material_SpineTexture;
 
     varying vec2 v_uv;
@@ -31,7 +32,7 @@ export class SpineMaterial extends Material {
     void main()
     {
         vec4 baseColor = texture2D(material_SpineTexture, v_uv);
-        gl_FragColor = baseColor * v_color;
+        gl_FragColor = outputSRGBCorrection(baseColor * v_color);
     }
    `;
   constructor(engine: Engine) {

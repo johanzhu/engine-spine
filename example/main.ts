@@ -37,7 +37,12 @@ const blobResource: any = {
 const baseDemo = "spineBoy-单json";
 const demos = {
   "spineBoy-单json": {
-    url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json"
+    // url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json"
+    urls: [
+      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*s5GUT4yEPBYAAAAAAAAAAAAAAQAAAQ?af_fileName=spineboy-pro.json",
+      "https://mdn.alipayobjects.com/portal_h1wdez/afts/file/A*WUkvTZ5APmEAAAAAAAAAAAAAAQAAAQ?af_fileName=spineboy-pro.atlas",
+      "https://mdn.alipayobjects.com/portal_h1wdez/afts/img/A*HWO3QZVio6wAAAAAAAAAAAAAAQAAAQ/original?af_fileName=spineboy-pro.png"
+    ]
   },
   "raptor-三文件json": {
     urls: [
@@ -123,7 +128,7 @@ WebGLEngine.create({
 
   const cameraEntity = root.createChild("camera_node");
   const camera = cameraEntity.addComponent(Camera);
-  cameraEntity.transform.position = new Vector3(0, 0, 20);
+  cameraEntity.transform.position = new Vector3(-20, 0, 60);
   camera.nearClipPlane = 0.001;
   camera.farClipPlane = 20000;
 
@@ -167,7 +172,7 @@ async function loadSpine(root: Entity, engine: Engine, resource) {
   console.log("spine asset loaded =>", spineResource.skeletonData);
   removeController();
   const animationNames = spineResource.skeletonData.animations.map((item) => item.name);
-  const firstAnimation = animationNames[0];
+  const firstAnimation = animationNames[1];
 
   const spineEntity = new Entity(engine, "spine-entity");
   spineEntity.transform.setPosition(0, -2.5, 0);
