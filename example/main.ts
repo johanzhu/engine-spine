@@ -105,6 +105,28 @@ async function loadSpine(root: Entity, engine: Engine) {
   spineRenderer.priority = 100;
   spineRenderer.animationName = "06";
 
+  // spineEntity.destroy();
+  // engine.resourceManager.gc();
+
+  // const res = await engine.resourceManager.load(
+  //   {
+  //     url: "https://mdn.alipayobjects.com/oasis_be/afts/file/A*B3sdQ5pnQnAAAAAAAAAAAAAADkp5AQ/Dragonballs.json",
+  //     type: "spine",
+  //   },
+  // ) as Entity;
+
+  // const spineEntity2 = parent.createChild("spine2");
+  // spineEntity2.transform.setPosition(0, -15, 0);
+  // const spineRenderer2 = spineEntity2.addComponent(SpineRenderer);
+  // spineRenderer2.scale = 0.05;
+  // // spineRenderer.loop = false;
+  // // spineRenderer.autoPlay = false;
+  // spineRenderer2.resource = res;
+  // spineRenderer2.priority = 100;
+  // spineRenderer2.animationName = "06";
+  // console.log(spineEntity2);
+
+
   // // 来回切父节点
   // const parent1 = root.createChild("parent1");
   // const parent2 = root.createChild("parent2");

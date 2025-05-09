@@ -145,6 +145,14 @@ class SpineLoader extends Loader<Entity> {
         meshRenderer.setMaterial(mtl);
         const spineAnimation = entity.addComponent(SpineAnimation);
         spineAnimation.setSkeletonData(skeletonData);
+        const textures: Texture2D[] = [];
+        atlas.pages.forEach((page) => {
+          const texture = page.texture.texture;
+          // @ts-ignore
+          texture._addReferCount(1);
+          textures.push(texture);
+        });
+        spineAnimation._heldTextures = textures;
         resolve(entity);
       } catch (err) {
         reject(err);

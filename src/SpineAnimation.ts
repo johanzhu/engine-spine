@@ -9,6 +9,7 @@ import {
   Script,
   Entity,
   ignoreClone,
+  assignmentClone,
   MeshRenderer,
   Texture2D,
   Material,
@@ -35,6 +36,10 @@ export class SpineAnimation extends Script {
     this._defaultMaterial = defaultMaterial;
     return defaultMaterial.clone();
   }
+
+  /** @internal */
+  @assignmentClone
+  _heldTextures: Texture2D[] = null;
 
   @ignoreClone
   private _skeletonData: SkeletonData;
@@ -185,7 +190,19 @@ export class SpineAnimation extends Script {
     this._state = null;
   }
 
+  private _disposeTextures() {
+    if (this._heldTextures) {
+      for (let i = 0; i < this._heldTextures.length; i++) {
+        const tex = this._heldTextures[i];
+        // @ts-ignore
+        tex._addReferCount(-1);
+      }
+      this._heldTextures = null;
+    }
+  }
+
   onDestroy() {
+    this._disposeTextures();
     this._disposeCurrentSkeleton();
     this._meshGenerator = null;
     this.setting = null;
