@@ -78,6 +78,12 @@ export class SpineAnimationRenderer extends Renderer {
   @deepClone
   readonly defaultConfig: SpineAnimationDefaultConfig = new SpineAnimationDefaultConfig();
 
+  /**
+   * Hook function called after animation applied and before building render primitive.
+   * This allows custom logic to be executed after animation state is applied but before buffer upload.
+   */
+  onBeforeBuildPrimitive?: () => void;
+
   /** @internal */
   @ignoreClone
   _primitive: Primitive;
@@ -164,6 +170,9 @@ export class SpineAnimationRenderer extends Renderer {
     state.apply(skeleton);
     skeleton.update(delta);
     skeleton.updateWorldTransform(Physics.update);
+
+    this.onBeforeBuildPrimitive?.();
+
     SpineAnimationRenderer._spineGenerator.buildPrimitive(this._skeleton, this);
     this._dirtyUpdateFlag |= RendererUpdateFlags.WorldVolume;
   }

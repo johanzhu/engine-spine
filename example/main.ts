@@ -37,7 +37,12 @@ const blobResource: any = {
 const baseDemo = "spineBoy-单json";
 const demos = {
   "spineBoy-单json": {
-    url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json"
+    // url: "https://mdn.alipayobjects.com/huamei_kz4wfo/uri/file/as/2/kz4wfo/4/mp/yKbdfgijyLGzQDyQ/spineboy/spineboy.json"
+    urls: [
+      "https://mdn.alipayobjects.com/oasis_be/afts/file/A*rhSDSZq_mMEAAAAAAAAAAAAAekp5AQ/mubu.skel",
+      "https://mdn.alipayobjects.com/oasis_be/afts/file/A*LDqHS6EAszkAAAAAAAAAAAAAekp5AQ/mubu.atlas",
+      "https://mdn.alipayobjects.com/oasis_be/afts/img/A*r8vOR5Af_ZQAAAAAAAAAAAAAekp5AQ/original?a=.png"
+    ]
   },
   "raptor-三文件json": {
     urls: [
@@ -197,7 +202,7 @@ async function loadSpine(root: Entity, engine: Engine, resource) {
   //   outline.updateVertices();
   // }, 67);
 
-  spineAnimation.state.setAnimation(0, firstAnimation, true);
+  // spineAnimation.state.setAnimation(0, firstAnimation, true);
   animationController = gui
     .add({ animation: firstAnimation }, "animation", animationNames)
     .onChange((animationName) => {
@@ -211,6 +216,21 @@ async function loadSpine(root: Entity, engine: Engine, resource) {
   if (scene === "changeResource") {
     handleChangeResource(engine, spineAnimation);
   }
+
+  spineAnimation.onBeforeBuildPrimitive = () => {
+    const ziSlot = spineAnimation.skeleton.findSlot("zi");
+    const zi1Slot = spineAnimation.skeleton.findSlot("zi1");
+    if (ziSlot) {
+      ziSlot.color.r = 1;
+      ziSlot.color.g = 0;
+      ziSlot.color.b = 1;
+    }
+    if (zi1Slot) {
+      zi1Slot.color.r = 1;
+      zi1Slot.color.g = 0;
+      zi1Slot.color.b = 1;
+    }
+  };
 }
 
 function handleChangeSkinScene(spineAnimation: SpineAnimationRenderer) {
